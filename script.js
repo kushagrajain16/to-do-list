@@ -2,6 +2,7 @@ const taskInput = document.getElementById('task');
 const addTaskBtn = document.getElementById('add-task-btn');
 const saveTaskBtn = document.getElementById('save-task-btn');
 const tableBody = document.querySelector('#table tbody');
+const completedTableBody = document.querySelector('#completed-table tbody');
 
 // Task list array
 let taskList = JSON.parse(localStorage.getItem('taskList')) || [];
@@ -9,37 +10,44 @@ let editingTaskIndex = null;
 
 function displayTaskList(tasks = taskList) {
   tableBody.innerHTML = '';
+  completedTableBody.innerHTML = '';
 
   tasks.forEach(function (task, index) {
     const row = document.createElement('tr');
     row.innerHTML = `
-      <td>${task}</td>
+      <td>
+        <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTaskStatus(${index})">
+        <span class="${task.completed ? 'completed' : ''}">${task.name}</span>
+      </td>
       <td>
         <button onclick="editTask(${index})"><i class="fas fa-edit"></i> Edit</button>
         <button onclick="deleteTask(${index})"><i class="fas fa-trash-alt"></i> Delete</button>
       </td>
     `;
-    row.dataset.taskId = index;
-    tableBody.appendChild(row);
+    if (task.completed) {
+      completedTableBody.appendChild(row);
+    } else {
+      tableBody.appendChild(row);
+    }
   });
 }
 
 // Add a new task to the task list
 function addTask() {
-  const task = taskInput.value.trim();
+  const taskName = taskInput.value.trim();
 
-  if (task === '') {
+  if (taskName === '') {
     alert('Please enter a task');
     return;
   }
 
   if (editingTaskIndex !== null) {
-    taskList[editingTaskIndex] = task;
+    taskList[editingTaskIndex].name = taskName;
     editingTaskIndex = null;
     addTaskBtn.style.display = 'block';
     saveTaskBtn.style.display = 'none';
   } else {
-    taskList.push(task);
+    taskList.push({ name: taskName, completed: false });
   }
 
   displayTaskList();
@@ -61,13 +69,20 @@ function deleteTask(taskIndex) {
 
 // Function to edit a task in the task list
 function editTask(taskIndex) {
-  const task = taskList[taskIndex];
+  const task = taskList[taskIndex].name;
 
   taskInput.value = task;
 
   editingTaskIndex = taskIndex;
   addTaskBtn.style.display = 'none';
   saveTaskBtn.style.display = 'block';
+}
+
+// Function to toggle task status
+function toggleTaskStatus(taskIndex) {
+  taskList[taskIndex].completed = !taskList[taskIndex].completed;
+  displayTaskList();
+  saveTaskListToLocalStorage();
 }
 
 // Search functionality
@@ -79,7 +94,7 @@ function handleSearch() {
     return;
   }
 
-  const filteredTasks = taskList.filter((task) => task.toLowerCase().includes(searchTerm));
+  const filteredTasks = taskList.filter((task) => task.name.toLowerCase().includes(searchTerm));
 
   displayTaskList(filteredTasks);
 }
