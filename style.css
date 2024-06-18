@@ -74,7 +74,7 @@ th {
   margin-right: 5px;
 }
 
-.container-3 {
+.container-3, .container-4 {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -86,4 +86,9 @@ th {
 
 #save-task-btn {
   display: none;
+}
+
+.completed {
+  text-decoration: line-through;
+  color: grey;
 }
